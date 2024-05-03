@@ -1,0 +1,187 @@
+#include <Adafruit_Sensor.h>                       // Biblioteca DHT Sensor Adafruit 
+#include <DHT.h>
+#include <DHT_U.h>
+
+#include <LiquidCrystal.h>
+#define DHTTYPE    DHT11  
+#define DHTPIN 6 
+DHT_Unified dht(DHTPIN, DHTTYPE);                  
+uint32_t delayMS; 
+
+LiquidCrystal lcd(12, 11, 10, 5, 4, 3, 2);
+
+int ledVermelho = 9;
+int ledAmarelo = 8;
+int ledVerde = 7;
+int ldr = A0;
+int buzzer = 13;
+int valorldr = 0;
+
+
+void setup()
+{
+  pinMode(ledVermelho, OUTPUT);
+  pinMode(ledAmarelo, OUTPUT);
+  pinMode(ledVerde, OUTPUT);
+  pinMode(ldr, INPUT);
+  pinMode(buzzer, INPUT);
+  Serial.begin(9600);
+  sensor_t sensor;
+  dht.begin(); 
+  lcd.begin(16,2);              
+  lcd.clear();      
+  //delayMS = sensor.min_delay / 1000;        
+  
+}
+
+void loop()
+{  
+  valorldr = analogRead(ldr); 
+  
+
+  lcd.display();
+  Serial.println(valorldr);
+
+  if(valorldr <= 100) {
+    lcd.clear();
+    digitalWrite(ledVerde, LOW);
+    digitalWrite(ledAmarelo, LOW);
+    digitalWrite(ledVermelho, HIGH);
+    tone(buzzer, 1000);
+    lcd.setCursor(0,0);
+    lcd.print("Ambiente muito");
+    lcd.setCursor(0,1);
+    lcd.print("claro!");  
+    delay(1000);
+    
+    
+  } else if (valorldr < 500 && valorldr > 100) {
+    lcd.clear();
+    noTone(buzzer);
+    digitalWrite(ledVerde, LOW);
+     digitalWrite(ledVermelho, LOW);
+    digitalWrite(ledAmarelo, HIGH);
+    lcd.setCursor(0,0);
+    lcd.print("Ambiente meia");
+    lcd.setCursor(0,1);
+    lcd.print("luz!");
+    delay(1000);
+    
+    
+  } else {
+    lcd.clear();
+    noTone(buzzer);
+    digitalWrite(ledVermelho, LOW);
+    digitalWrite(ledAmarelo, LOW);
+    digitalWrite(ledVerde, HIGH); 
+    lcd.setCursor(0,0);
+    lcd.print("Ambiente a luz");
+    lcd.setCursor(0,1);
+    lcd.print("ideal!");
+    delay(1000);
+    
+  } 
+
+  delay(delayMS);                               // atraso entre as medições
+  sensors_event_t event;                        // inicializa o evento da Temperatura
+  dht.temperature().getEvent(&event);           // faz a leitura da Temperatura
+  if (isnan(event.temperature))                 // se algum erro na leitura
+  {
+    Serial.println("Erro na leitura da Temperatura!");
+  }
+  else                                          // senão
+  {
+    Serial.print("Temperatura: ");              // imprime a Temperatura
+    Serial.print(event.temperature);
+    Serial.println(" *C");
+        if(event.temperature >= 10 && event.temperature < 15){
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print("Temp. OK");
+    lcd.setCursor(0,1);
+    lcd.print("C: ");
+    lcd.print(event.temperature);
+    delay(1000);
+    } else if(event.temperature < 10){
+       lcd.clear();
+      lcd.setCursor(0,0);
+      lcd.print("Temp. baixa");
+      lcd.setCursor(0,1);
+      lcd.print("C: ");
+      lcd.print(event.temperature);
+      delay(1000);
+    } else{
+      noTone(buzzer);
+      lcd.clear();
+      lcd.setCursor(0,0);
+      lcd.print("Temp. Alta");
+      lcd.setCursor(0,1);
+      lcd.print("C: ");
+      lcd.print(event.temperature);
+      delay(1000);
+  }
+  dht.humidity().getEvent(&event);              // faz a leitura de umidade
+  if (isnan(event.relative_humidity))           // se algum erro na leitura
+  {
+    Serial.println("Erro na leitura da Umidade!");
+  }
+  else                                          // senão
+  {
+    Serial.print("Umidade: ");                  // imprime a Umidade
+    Serial.print(event.relative_humidity);
+    Serial.println("%");
+
+     if(event.relative_humidity >= 500 && event.relative_humidity < 700){
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print("Umidade. OK");
+    lcd.setCursor(0,1);
+    lcd.print("C: ");
+    lcd.print(event.temperature);
+    delay(1000);
+    } else if(event.relative_humidity > 700){
+       lcd.clear();
+      lcd.setCursor(0,0);
+      lcd.print("Umidade. alta");
+      lcd.setCursor(0,1);
+      lcd.print("C: ");
+      lcd.print(event.relative_humidity);
+      delay(1000);
+    } else{
+      noTone(buzzer);
+      lcd.clear();
+      lcd.setCursor(0,0);
+      lcd.print("Umidade. baixa");
+      lcd.setCursor(0,1);
+      lcd.print("C: ");
+      lcd.print(event.relative_humidity);
+  }
+
+//    if(event.temperature >= 10 && event.temperature < 15){
+//    lcd.clear();
+//    lcd.setCursor(0,0);
+//    lcd.print("Humida. OK");
+//    lcd.setCursor(0,1);
+//    lcd.print("C: ");
+//    lcd.print(event.temperature);
+//    delay(1000);
+//    } else if(event.temperature < 10){
+//       lcd.clear();
+//      lcd.setCursor(0,0);
+//      lcd.print("Temp. baixa");
+//      lcd.setCursor(0,1);
+//      lcd.print("C: ");
+//      lcd.print(event.temperature);
+//      delay(1000);
+//    } else{
+//      noTone(buzzer);
+//      lcd.clear();
+//      lcd.setCursor(0,0);
+//      lcd.print("Temp. Alta");
+//      lcd.setCursor(0,1);
+//      lcd.print("C: ");
+//      lcd.print(event.temperature);
+      delay(1000);
+      }
+  }
+}
